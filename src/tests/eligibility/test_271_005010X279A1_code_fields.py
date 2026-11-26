@@ -120,10 +120,14 @@ def test_eb03_any_one_or_two_character_code_is_accepted_and_unchanged(code):
     assert_round_trip(build_271("2110C-EB", f"EB*1**{code}"))
 
 
-@pytest.mark.parametrize("code", ["", "A8Z", "300"])
-def test_eb03_malformed_length_is_rejected(code):
+def test_eb03_empty_is_rejected():
     with pytest.raises(ValidationError):
-        parse(build_271("2110C-EB", f"EB*1**{code}"))
+        parse(build_271("2110C-EB", "EB*1**"))
+
+
+@pytest.mark.parametrize("code", ["A8Z", "300"])
+def test_eb03_longer_than_two_characters_is_accepted_and_unchanged(code):
+    assert_round_trip(build_271("2110C-EB", f"EB*1**{code}"))
 
 
 # EB03 repetitions use the repetition separator declared in ISA11 (`^` here).
@@ -145,9 +149,8 @@ def test_eb03_repeated_codes_are_accepted_and_unchanged(value):
 
 
 @pytest.mark.parametrize("value", ["30^", "^30", "30^^A8"])
-def test_eb03_repetition_with_an_empty_member_is_rejected(value):
-    with pytest.raises(ValidationError):
-        parse(build_271("2110C-EB", f"EB*1**{value}"))
+def test_eb03_repetition_with_an_empty_member_is_accepted_and_unchanged(value):
+    assert_round_trip(build_271("2110C-EB", f"EB*1**{value}"))
 
 
 # Dependent as patient: 2000D / 2100D (name loop) / 2110D (benefit loop).
@@ -197,10 +200,16 @@ def test_dependent_2110d_eb03_code_is_accepted_and_unchanged(code):
     assert_round_trip(build_271_dependent(f"EB*1**{code}"))
 
 
-@pytest.mark.parametrize("code", ["", "A8Z"])
-def test_dependent_2110d_eb03_malformed_length_is_rejected(code):
+def test_dependent_2110d_eb03_empty_is_rejected():
     with pytest.raises(ValidationError):
-        parse(build_271_dependent(f"EB*1**{code}"))
+        parse(build_271_dependent("EB*1**"))
+
+
+@pytest.mark.parametrize("code", ["A8Z"])
+def test_dependent_2110d_eb03_longer_than_two_characters_is_accepted_and_unchanged(
+    code,
+):
+    assert_round_trip(build_271_dependent(f"EB*1**{code}"))
 
 
 @pytest.mark.parametrize("code", ["33", "72", "73", "ZZ"])

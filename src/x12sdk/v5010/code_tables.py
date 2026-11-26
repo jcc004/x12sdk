@@ -9,7 +9,7 @@ from a list does not fail a transaction.
 """
 
 from enum import Enum
-from typing import Annotated, Union
+from typing import Annotated, List, Optional, Union
 
 from pydantic import Field
 
@@ -278,6 +278,21 @@ RejectReasonField = Union[
 FollowUpActionField = Union[
     FollowUpActionCode, Annotated[str, Field(min_length=1, max_length=1)]
 ]
-ServiceTypeField = Union[
-    ServiceTypeCode, Annotated[str, Field(min_length=1, max_length=2)]
-]
+# The service type code (EB03 on a response, EQ01 on an inquiry) accepts any
+# string, so the repetitions it carries round-trip as written. An empty
+# repetition is kept as an empty member; check_service_type_codes rejects an
+# element that is empty throughout.
+
+
+ServiceTypeField = Union[ServiceTypeCode, str]
+
+
+def check_service_type_codes(
+    values: Optional[List[Union[Enum, str]]],
+) -> Optional[List[Union[Enum, str]]]:
+    """
+    Reject a service type code element in which every repetition is empty.
+    """
+    if values is not None and not any(values):
+        raise ValueError("service type code must have at least one value")
+    return values

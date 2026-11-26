@@ -1100,6 +1100,10 @@ class EbSegment(X12Segment):
         None, json_schema_extra={"is_component": True}
     )
 
+    _validate_service_type_code = field_validator("service_type_code")(
+        code_tables.check_service_type_codes
+    )
+
     @model_validator(mode="after")
     def validate_quantity(self):
         """
