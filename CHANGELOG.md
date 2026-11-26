@@ -26,10 +26,13 @@ release, 0.57.0 (June 2022); entries below describe changes made since.
 
 ### Fixed
 - **271: well-formed AAA03, AAA04 and EB03 code values are accepted.** These
-  fields were limited to fixed lists per loop, so a valid code outside a list
-  (for example `72` or `73` in AAA03, `A8` in EB03) failed the whole
-  transaction. They are now length-checked strings, as in the shared base
-  segment, so values that were rejected before are accepted.
+  fields were limited to fixed lists, one copy per loop for AAA03 and AAA04,
+  so a valid code outside a list (for example `72` or `73` in AAA03, `A8` in
+  EB03) failed the whole transaction. Each list is now defined once, in
+  `x12sdk.v5010.code_tables`, and gains `72` and `73` (AAA03) and `A8` (EB03).
+  The fields also accept any other value of the right length, so values that
+  were rejected before are accepted. The nested enum names on the segment
+  classes still resolve.
 
 ## 2.4.0 — 2026-11-22
 

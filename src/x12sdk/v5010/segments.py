@@ -9,7 +9,7 @@ and overriden as necessary to support a transaction's specific validation and us
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Annotated, Dict, List, Literal, Optional, Tuple, Union
+from typing import Annotated, ClassVar, Dict, List, Literal, Optional, Tuple, Union
 
 from pydantic import (
     Field,
@@ -22,6 +22,7 @@ from pydantic import (
 
 from x12sdk.models import X12Delimiters, X12Segment, X12SegmentName
 from x12sdk.support import parse_interchange_date, parse_x12_date
+from x12sdk.v5010 import code_tables
 from x12sdk.validators import validate_date_field
 
 
@@ -954,6 +955,10 @@ class EbSegment(X12Segment):
         SPOUSE_AND_CHILDREN = "SPC"
         SPOUSE_ONLY = "SPO"
 
+    ServiceTypeCode: ClassVar[type[code_tables.ServiceTypeCode]] = (
+        code_tables.ServiceTypeCode
+    )
+
     class InsuranceTypeCode(str, Enum):
         """
         code values for EB04
@@ -1076,9 +1081,7 @@ class EbSegment(X12Segment):
     segment_name: X12SegmentName = X12SegmentName.EB
     eligibility_benefit_information: EligibilityBenefitInformationCode
     coverage_level_code: Optional[CoverageLevelCode] = None
-    service_type_code: Optional[
-        List[Annotated[str, Field(min_length=1, max_length=2)]]
-    ] = None
+    service_type_code: Optional[List[code_tables.ServiceTypeField]] = None
     insurance_type_code: Optional[InsuranceTypeCode] = None
     plan_coverage_description: Optional[str] = None
     time_period_qualifier: Optional[TimePeriodQualifier] = None

@@ -5,10 +5,11 @@ Specialized segment models for the Eligibility 271 005010X279A1 transaction.
 """
 
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import ClassVar, List, Literal, Optional
 
 from pydantic import Field
 
+from x12sdk.v5010 import code_tables
 from x12sdk.v5010.segments import (
     AaaSegment,
     AmtSegment,
@@ -71,6 +72,16 @@ class Loop2000AAaaSegment(AaaSegment):
     """
     Loop 2000A AAA Segment adjusted for Information Source Usage
     """
+
+    RejectReasonCode: ClassVar[type[code_tables.RejectReasonCode]] = (
+        code_tables.RejectReasonCode
+    )
+    FollowUpActionCode: ClassVar[type[code_tables.FollowUpActionCode]] = (
+        code_tables.FollowUpActionCode
+    )
+
+    reject_reason_code: code_tables.RejectReasonField
+    follow_up_action_code: code_tables.FollowUpActionField
 
 
 class Loop2100ANm1Segment(Nm1Segment):
@@ -143,6 +154,16 @@ class Loop2100AAaaSegment(AaaSegment):
     """
     Loop 2100A AAA segment (Information Source Request Validation)
     """
+
+    RejectReasonCode: ClassVar[type[code_tables.RejectReasonCode]] = (
+        code_tables.RejectReasonCode
+    )
+    FollowUpActionCode: ClassVar[type[code_tables.FollowUpActionCode]] = (
+        code_tables.FollowUpActionCode
+    )
+
+    reject_reason_code: code_tables.RejectReasonField
+    follow_up_action_code: code_tables.FollowUpActionField
 
 
 class Loop2000BHlSegment(HlSegment):
@@ -224,6 +245,16 @@ class Loop2100BAaaSegment(AaaSegment):
     """
     Information Receiver Request Validation
     """
+
+    RejectReasonCode: ClassVar[type[code_tables.RejectReasonCode]] = (
+        code_tables.RejectReasonCode
+    )
+    FollowUpActionCode: ClassVar[type[code_tables.FollowUpActionCode]] = (
+        code_tables.FollowUpActionCode
+    )
+
+    reject_reason_code: code_tables.RejectReasonField
+    follow_up_action_code: code_tables.FollowUpActionField
 
 
 class Loop2100BPrvSegment(PrvSegment):
@@ -414,6 +445,16 @@ class Loop2110CAaaSegment(AaaSegment):
     """
     Loop 2110C AAA Segment supports member specific request validation code tables
     """
+
+    RejectReasonCode: ClassVar[type[code_tables.RejectReasonCode]] = (
+        code_tables.RejectReasonCode
+    )
+    FollowUpActionCode: ClassVar[type[code_tables.FollowUpActionCode]] = (
+        code_tables.FollowUpActionCode
+    )
+
+    reject_reason_code: code_tables.RejectReasonField
+    follow_up_action_code: code_tables.FollowUpActionField
 
 
 class Loop2110EqSegment(EqSegment):
