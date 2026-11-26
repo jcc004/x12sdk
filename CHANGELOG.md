@@ -24,6 +24,14 @@ release, 0.57.0 (June 2022); entries below describe changes made since.
   once it is on PyPI, by a workflow authenticated with GitHub OIDC (no stored
   secret). `glama.json` names the maintainer for the Glama directory.
 
+### Fixed
+- **277: segments are no longer dropped while parsing.** Every service line
+  after the first (with its STC and DTP) and the segments after a patient or
+  claim loop without a TRN were lost, which showed only as an SE segment
+  count mismatch. They are now kept and round-trip. `trn_segment` is
+  optional on the 2200D and 2200E loops, so a claim without a TRN is
+  accepted; `trace_number` returns None for it.
+
 ## 2.4.0 — 2026-11-22
 
 ### Added
