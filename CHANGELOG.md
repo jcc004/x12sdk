@@ -24,6 +24,13 @@ release, 0.57.0 (June 2022); entries below describe changes made since.
   once it is on PyPI, by a workflow authenticated with GitHub OIDC (no stored
   secret). `glama.json` names the maintainer for the Glama directory.
 
+### Fixed
+- **271: well-formed AAA03, AAA04 and EB03 code values are accepted.** These
+  fields were limited to fixed lists per loop, so a valid code outside a list
+  (for example `72` or `73` in AAA03, `A8` in EB03) failed the whole
+  transaction. They are now length-checked strings, as in the shared base
+  segment, so values that were rejected before are accepted.
+
 ## 2.4.0 — 2026-11-22
 
 ### Added
