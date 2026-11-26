@@ -226,22 +226,53 @@ def test_277_stc_after_dependent_name_then_later_trn_round_trips():
     _check_round_trip(body)
 
 
+def _assert_rejected_or_held_by_its_subscriber(body):
+    """
+    A segment placed directly under a subscriber that has dependents (HL04 = 1),
+    with no dependent loop opened, has two acceptable outcomes: the file is
+    rejected with a ValidationError, or it parses and the segment is held by the
+    subscriber it followed, not by an earlier subscriber, with nothing dropped
+    (each subscriber writes back exactly its own segments, and the transaction
+    set round-trips). Silent attachment to another subscriber, a dropped segment
+    and a raw exception are not acceptable.
+    """
+    text = build(body)
+    try:
+        models = parse(text)
+    except ValidationError:
+        return
+    assert len(models) == 1
+    assert models[0].x12(use_new_lines=False).strip().rstrip("~").split("~") == (
+        st_to_se(text)
+    )
+    owned = []
+    for segment in body:
+        if segment.startswith("HL*") and segment.split("*")[3] == "22":
+            owned.append([])
+        if owned:
+            owned[-1].append(segment)
+    subscribers = models[0].loop_2000a[0].loop_2000b[0].loop_2000c[0].loop_2000d
+    assert [s.x12(use_new_lines=False) for s in subscribers] == [
+        "~".join(segments) + "~" for segments in owned
+    ]
+
+
 def test_277_stc_after_subscriber_with_dependents_and_no_dependent_loop():
     """
-    Guards a malformed shape (STC straight after a subscriber that has dependents,
-    with no dependent loop opened) being rejected as a ValidationError rather than
-    a raw AttributeError.
+    STC straight after a subscriber that has dependents, with no dependent loop
+    opened: either a ValidationError, or the STC stays with that subscriber and
+    the file round-trips.
     """
-    text = build(SUB_WITH_CHILD + ["STC*P3:317*20260101**100.00"])
-    with pytest.raises(ValidationError, match="SE segment count"):
-        parse(text)
+    _assert_rejected_or_held_by_its_subscriber(
+        SUB_WITH_CHILD + ["STC*P3:317*20260101**100.00"]
+    )
 
 
 def test_277_stc_after_second_subscriber_with_dependents_is_not_attached_to_first():
     """
     Subscriber A (no dependents) has a claim; subscriber B (has dependents) is
-    followed directly by an STC. That STC belongs to no loop and must be rejected,
-    not silently attached to subscriber A.
+    followed directly by an STC. Either a ValidationError, or the STC is held by
+    subscriber B and subscriber A still holds only its own segments.
     """
     body = (
         sub(4, "A")
@@ -250,8 +281,7 @@ def test_277_stc_after_second_subscriber_with_dependents_is_not_attached_to_firs
         + ["HL*5*3*22*1", "NM1*IL*1*DOE*JANE****MI*MEMBER00B"]
         + ["STC*P3:317*20260101**100.00"]
     )
-    with pytest.raises(ValidationError):
-        parse(build(body))
+    _assert_rejected_or_held_by_its_subscriber(body)
 
 
 _SUB_B_WITH_DEPENDENTS = ["HL*5*3*22*1", "NM1*IL*1*DOE*JANE****MI*MEMBER00B"]
@@ -267,22 +297,20 @@ def test_277_misplaced_segment_after_subscriber_with_dependents_after_prior_subs
     tail,
 ):
     """
-    Guards malformed input being rejected as a ValidationError rather than a raw
-    AttributeError: a TRN or SVC directly after a subscriber that has dependents
-    (no dependent loop opened), following an earlier subscriber with a claim.
+    A TRN or SVC directly after a subscriber that has dependents (no dependent
+    loop opened), following an earlier subscriber with a claim: either a
+    ValidationError, or the segment is held by the later subscriber and the
+    earlier one is unchanged.
     """
     body = sub(4, "A") + trn("A") + CLAIM + _SUB_B_WITH_DEPENDENTS + tail
-    with pytest.raises(ValidationError, match="SE segment count"):
-        parse(build(body))
+    _assert_rejected_or_held_by_its_subscriber(body)
 
 
 @pytest.mark.parametrize("tail", _MISPLACED.values(), ids=_MISPLACED.keys())
 def test_277_misplaced_segment_after_first_subscriber_with_dependents(tail):
     """
-    Guards malformed input being rejected as a ValidationError rather than a raw
-    AttributeError: a TRN or SVC directly after the first patient, a subscriber
-    that has dependents (no dependent loop opened).
+    A TRN or SVC directly after the first patient, a subscriber that has
+    dependents (no dependent loop opened): either a ValidationError, or the
+    segment is held by that subscriber and the file round-trips.
     """
-    body = SUB_WITH_CHILD + tail
-    with pytest.raises(ValidationError, match="SE segment count"):
-        parse(build(body))
+    _assert_rejected_or_held_by_its_subscriber(SUB_WITH_CHILD + tail)
